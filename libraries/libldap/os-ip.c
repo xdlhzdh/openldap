@@ -85,13 +85,15 @@ static int
 ldap_pvt_ndelay_on(LDAP *ld, int fd)
 {
 	Debug1(LDAP_DEBUG_TRACE, "ldap_ndelay_on: %d\n",fd );
+	LOG_TO_FILE( "ldap_ndelay_on: %d",fd );
 	return ber_pvt_socket_set_nonblock( fd, 1 );
 }
-   
+
 static int
 ldap_pvt_ndelay_off(LDAP *ld, int fd)
 {
 	Debug1(LDAP_DEBUG_TRACE, "ldap_ndelay_off: %d\n",fd );
+	LOG_TO_FILE( "ldap_ndelay_off: %d",fd );
 	return ber_pvt_socket_set_nonblock( fd, 0 );
 }
 
@@ -303,6 +305,7 @@ ldap_int_poll(
 			timeout = TV2MILLISEC( tvp );
 		}
 		do {
+			LOG_TO_FILE("polling with timeout %d", timeout);
 			fd.revents = 0;
 			rc = poll( &fd, 1, timeout );
 		
@@ -441,24 +444,29 @@ ldap_pvt_connect(LDAP *ld, ber_socket_t s,
 	Debug3(LDAP_DEBUG_TRACE,
 			"ldap_pvt_connect: fd: %d tm: %ld async: %d\n",
 			s, opt_tv ? tv.tv_sec : -1L, async);
+	LOG_TO_FILE("ldap_pvt_connect: fd: %d tm: %ld async: %d",
+			s, opt_tv ? tv.tv_sec : -1L, async);
 
 	if ( opt_tv && ldap_pvt_ndelay_on(ld, s) == -1 )
 		return ( -1 );
 
 	do{
 		Debug0(LDAP_DEBUG_TRACE, "attempting to connect: \n" );
+		LOG_TO_FILE("attempting to connect:");
 		if ( connect(s, sin, addrlen) != AC_SOCKET_ERROR ) {
 			Debug0(LDAP_DEBUG_TRACE, "connect success\n" );
-
+			LOG_TO_FILE("connect success");
 			if ( !async && opt_tv && ldap_pvt_ndelay_off(ld, s) == -1 )
 				return ( -1 );
 			return ( 0 );
 		}
 		err = sock_errno();
 		Debug1(LDAP_DEBUG_TRACE, "connect errno: %d\n", err );
+		LOG_TO_FILE("connect errno: %d", err);
 
 	} while(err == EINTR &&
 		LDAP_BOOL_GET( &ld->ld_options, LDAP_BOOL_RESTART ));
+	LOG_TO_FILE("");
 
 	if ( err != EINPROGRESS && err != EWOULDBLOCK ) {
 		return ( -1 );
@@ -470,8 +478,10 @@ ldap_pvt_connect(LDAP *ld, ber_socket_t s,
 	}
 
 	rc = ldap_int_poll( ld, s, opt_tv, 1 );
+	LOG_TO_FILE("ldap_int_poll return %d", rc);
 
 	Debug1(LDAP_DEBUG_TRACE, "ldap_pvt_connect: %d\n", rc );
+	LOG_TO_FILE("ldap_pvt_connect: %d", rc );
 
 	return rc;
 }
@@ -634,7 +644,7 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 			proto );
 		return -1;
 	}
-
+	LOG_TO_FILE("");
 #if defined( HAVE_GETADDRINFO ) && defined( HAVE_INET_NTOP )
 	memset( &hints, '\0', sizeof(hints) );
 #ifdef USE_AI_ADDRCONFIG /* FIXME: configure test needed */
@@ -682,6 +692,8 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 			ldap_pvt_close_socket(ld, s);
 			break;
 		}
+		
+		LOG_TO_FILE("");
 
 		switch (sai->ai_family) {
 #ifdef LDAP_PF_INET6
@@ -693,6 +705,7 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 				Debug2(LDAP_DEBUG_TRACE,
 				      "ldap_connect_to_host: Trying %s %s\n",
 					addr, serv );
+				LOG_TO_FILE("ldap_connect_to_host: Trying %s %s", addr, serv);
 				if( ld->ld_options.ldo_local_ip_addrs.has_ipv6 ) {
 					struct sockaddr_in6 ip6addr;
 					char bind_addr[INET6_ADDRSTRLEN];
@@ -705,10 +718,12 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 					Debug1( LDAP_DEBUG_TRACE,
 						"ldap_connect_to_host: From source address %s\n",
 						bind_addr );
+					LOG_TO_FILE("ldap_connect_to_host: From source address %s", bind_addr);
 					if ( bind( s, ( struct sockaddr* ) &ip6addr, sizeof ip6addr ) != 0 ) {
 						Debug1( LDAP_DEBUG_TRACE,
 								"ldap_connect_to_host: Failed to bind source address %s\n",
 								bind_addr );
+						LOG_TO_FILE("ldap_connect_to_host: Failed to bind source address %s", bind_addr);
 						bind_success = 0;
 					}
 				}
@@ -722,6 +737,7 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 				Debug2(LDAP_DEBUG_TRACE,
 				      "ldap_connect_to_host: Trying %s:%s\n",
 					addr, serv );
+				LOG_TO_FILE( "ldap_connect_to_host: Trying %s:%s", addr, serv);
 				if( ld->ld_options.ldo_local_ip_addrs.has_ipv4 ) {
 					struct sockaddr_in ip4addr;
 					char bind_addr[INET_ADDRSTRLEN];
@@ -734,20 +750,26 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 					Debug1( LDAP_DEBUG_TRACE,
 						"ldap_connect_to_host: From source address %s\n",
 						bind_addr );
+					LOG_TO_FILE("ldap_connect_to_host: From source address %s", bind_addr);
 					if ( bind(s, ( struct sockaddr* )&ip4addr, sizeof ip4addr ) != 0 ) {
 						Debug1( LDAP_DEBUG_TRACE,
 								"ldap_connect_to_host: Failed to bind source address %s\n",
 								bind_addr );
+						LOG_TO_FILE("ldap_connect_to_host: Failed to bind source address %s", bind_addr);
 						bind_success = 0;
 					}
 				}
 			} break;
 		}
 		if ( bind_success ) {
+			LOG_TO_FILE("ldap_pvt_connect start");
 			rc = ldap_pvt_connect( ld, s,
 				sai->ai_addr, sai->ai_addrlen, async );
+			LOG_TO_FILE("ldap_pvt_connect return %d", rc);
 			if ( rc == 0 || rc == -2 ) {
+				LOG_TO_FILE("ldap_int_connect_cbs start");
 				err = ldap_int_connect_cbs( ld, sb, &s, srv, sai->ai_addr );
+				LOG_TO_FILE("ldap_int_connect_cbs return %d", err);
 				if ( err )
 					rc = err;
 				else
@@ -821,6 +843,7 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 		Debug2( LDAP_DEBUG_TRACE,
 			"ldap_connect_to_host: Trying %s:%d\n",
 			address, port );
+		LOG_TO_FILE("ldap_connect_to_host: Trying %s:%d\n", address, port);
 		if( ld->ld_options.ldo_local_ip_addrs.has_ipv4 ) {
 			struct sockaddr_in ip4addr;
 			ip4addr.sin_family = AF_INET;
@@ -837,13 +860,16 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 				Debug1( LDAP_DEBUG_TRACE,
 						"ldap_connect_to_host: Failed to bind source address %s\n",
 						bind_addr );
+				LOG_TO_FILE("ldap_connect_to_host: Failed to bind source address %s", bind_addr);	
 				bind_success = 0;
 			}
 		}
 		if ( bind_success ) {
+			LOG_TO_FILE("ldap_pvt_connect start");
 			rc = ldap_pvt_connect(ld, s,
 					(struct sockaddr *)&sin, sizeof(sin),
 					async);
+			LOG_TO_FILE("ldap_pvt_connect return %d", rc);
 
 			if ( (rc == 0) || (rc == -2) ) {
 				int err = ldap_int_connect_cbs( ld, sb, &s, srv, (struct sockaddr *)&sin );

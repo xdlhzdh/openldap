@@ -438,9 +438,10 @@ ldap_int_open_connection(
 
 	switch ( proto = ldap_pvt_url_scheme2proto( srv->lud_scheme ) ) {
 		case LDAP_PROTO_TCP:
+			LOG_TO_FILE("ldap_connect_to_host start");
 			rc = ldap_connect_to_host( ld, conn->lconn_sb,
 				proto, srv, async );
-
+			LOG_TO_FILE("ldap_connect_to_host return %d", rc);
 			if ( rc == -1 ) return rc;
 #ifdef LDAP_DEBUG
 			ber_sockbuf_add_io( conn->lconn_sb, &ber_sockbuf_io_debug,
@@ -648,17 +649,21 @@ ldap_int_check_async_open( LDAP *ld, ber_socket_t sd )
 	int rc;
 
 	rc = ldap_int_poll( ld, sd, &tv, 1 );
+	LOG_TO_FILE("got ldap_int_poll return %d", rc);
 	switch ( rc ) {
 	case 0:
 		/* now ready to start tls */
+		LOG_TO_FILE("ldap_int_poll return LDAP_CONNST_CONNECTED");
 		ld->ld_defconn->lconn_status = LDAP_CONNST_CONNECTED;
 		break;
 
 	default:
+		LOG_TO_FILE("ldap_int_poll return LDAP_CONNECT_ERROR");
 		ld->ld_errno = LDAP_CONNECT_ERROR;
 		return -1;
 
 	case -2:
+		LOG_TO_FILE("ldap_int_poll return LDAP_X_CONNECTING");
 		/* connect not completed yet */
 		ld->ld_errno = LDAP_X_CONNECTING;
 		return rc;

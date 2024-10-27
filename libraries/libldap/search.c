@@ -123,13 +123,13 @@ ldap_pvt_search(
 		return ld->ld_errno;
 	}
 
-
+	LOG_TO_FILE("ldap_send_initial_request start with msgid = %d", id);
 	/* send the message */
 	*msgidp = ldap_send_initial_request( ld, LDAP_REQ_SEARCH, base, ber, id );
-
+	LOG_TO_FILE("ldap_send_initial_request end with msgid = %d", *msgidp);
 	if( *msgidp < 0 )
 		return ld->ld_errno;
-
+	LOG_TO_FILE("send search request success");
 	return LDAP_SUCCESS;
 }
 
@@ -147,6 +147,7 @@ ldap_search_ext_s(
 	int sizelimit,
 	LDAPMessage **res )
 {
+	LOG_TO_FILE("ldap_search_ext_s just invoke ldap_pvt_search_s");
 	return ldap_pvt_search_s( ld, base, scope, filter, attrs,
 		attrsonly, sctrls, cctrls, timeout, sizelimit, -1, res );
 }
@@ -171,14 +172,18 @@ ldap_pvt_search_s(
 
     *res = NULL;
 
+	LOG_TO_FILE("ldap_pvt_search start");
 	rc = ldap_pvt_search( ld, base, scope, filter, attrs, attrsonly,
 		sctrls, cctrls, timeout, sizelimit, deref, &msgid );
+	LOG_TO_FILE("ldap_pvt_search return %d", rc);
 
 	if ( rc != LDAP_SUCCESS ) {
 		return( rc );
 	}
 
+	LOG_TO_FILE("ldap_result start");
 	rc = ldap_result( ld, msgid, LDAP_MSG_ALL, timeout, res );
+	LOG_TO_FILE("ldap_result return %d", rc);
 
 	if( rc <= 0 ) {
 		/* error(-1) or timeout(0) */

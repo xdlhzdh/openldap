@@ -106,6 +106,7 @@ ldap_extended_operation(
 	ber_int_t id;
 
 	Debug0( LDAP_DEBUG_TRACE, "ldap_extended_operation\n" );
+	LOG_TO_FILE("ldap_extended_operation");
 
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
@@ -122,11 +123,22 @@ ldap_extended_operation(
 		sctrls, cctrls, &id );
 	if ( !ber )
 		return( ld->ld_errno );
-
+	LOG_TO_FILE("ldap_build_extended_req return msgidp = %d", id);
 	/* send the message */
 	*msgidp = ldap_send_initial_request( ld, LDAP_REQ_EXTENDED, NULL, ber, id );
-
+	LOG_TO_FILE("ldap_send_initial_request return msgidp = %d, ld_errno = %d", *msgidp, ld->ld_errno);
 	return( *msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS );
+}
+
+#include <fcntl.h>
+int get_socket_nonblock(ber_socket_t sd) {
+    int flags = fcntl(sd, F_GETFL);
+    if (flags == -1) {
+        perror("fcntl");
+        return -1;
+    }
+
+    return (flags & O_NONBLOCK) ? 1 : 0;
 }
 
 int
@@ -144,6 +156,7 @@ ldap_extended_operation_s(
     LDAPMessage *res;
 
 	Debug0( LDAP_DEBUG_TRACE, "ldap_extended_operation_s\n" );
+	LOG_TO_FILE("ldap_extended_operation_s");
 
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
@@ -151,12 +164,14 @@ ldap_extended_operation_s(
 
     rc = ldap_extended_operation( ld, reqoid, reqdata,
 		sctrls, cctrls, &msgid );
-        
+	LOG_TO_FILE("NonBlock value after ldap_extended_operation: %d", get_socket_nonblock(ld->ld_sb->sb_fd));
+
     if ( rc != LDAP_SUCCESS ) {
         return( rc );
 	}
  
     if ( ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *) NULL, &res ) == -1 || !res ) {
+		LOG_TO_FILE("NonBlock value after ldap_result: %d", get_socket_nonblock(ld->ld_sb->sb_fd));
         return( ld->ld_errno );
 	}
 

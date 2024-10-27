@@ -124,6 +124,7 @@ ldap_send_initial_request(
 	ber_socket_t sd = AC_SOCKET_INVALID;
 
 	Debug0( LDAP_DEBUG_TRACE, "ldap_send_initial_request\n" );
+	LOG_TO_FILE("ldap_send_initial_request");
 
 	LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
 	if ( ber_sockbuf_ctrl( ld->ld_sb, LBER_SB_OPT_GET_FD, &sd ) == -1 ) {
@@ -134,8 +135,10 @@ ldap_send_initial_request(
 				LBER_SB_OPT_GET_FD, &sd );
 		}
 	}
-	if ( ld->ld_defconn && ld->ld_defconn->lconn_status == LDAP_CONNST_CONNECTING )
+	if ( ld->ld_defconn && ld->ld_defconn->lconn_status == LDAP_CONNST_CONNECTING ) {
 		rc = ldap_int_check_async_open( ld, sd );
+	    LOG_TO_FILE("ldap_int_check_async_open return %d", rc);
+	}
 	if( rc < 0 ) {
 		ber_free( ber, 1 );
 		LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
@@ -143,6 +146,7 @@ ldap_send_initial_request(
 	} else if ( rc == 0 ) {
 		Debug0( LDAP_DEBUG_TRACE,
 			"ldap_open_defconn: successful\n" );
+		LOG_TO_FILE("ldap_open_defconn: successful");
 	}
 
 #ifdef LDAP_CONNECTIONLESS
@@ -190,11 +194,13 @@ ldap_int_flush_request(
 			lr->lr_status = LDAP_REQST_WRITING;
 			ldap_mark_select_write( ld, lc->lconn_sb );
 			ld->ld_errno = LDAP_BUSY;
+			LOG_TO_FILE("ber_flush2 return EAGAIN || ENOTCONN, set lr_status = LDAP_REQST_WRITING and ld_errno = LDAP_BUSY, ldap_int_flush_request return -2");
 			return -2;
 		} else {
 			ld->ld_errno = LDAP_SERVER_DOWN;
 			ldap_free_request( ld, lr );
 			ldap_free_connection( ld, lc, 0, 0 );
+			LOG_TO_FILE("ber_flush2 return failed, set ld_errno = LDAP_SERVER_DOWN, ldap_int_flush_request return -1");
 			return( -1 );
 		}
 	} else {
@@ -203,11 +209,12 @@ ldap_int_flush_request(
 			lr->lr_ber->ber_ptr = lr->lr_ber->ber_buf;
 		}
 		lr->lr_status = LDAP_REQST_INPROGRESS;
-
+		LOG_TO_FILE("ber_flush2 success, clear write and set read, set lr_status = LDAP_REQST_INPROGRESS");
 		/* sent -- waiting for a response */
 		ldap_mark_select_read( ld, lc->lconn_sb );
 		ldap_clear_select_write( ld, lc->lconn_sb );
 	}
+	LOG_TO_FILE("ldap_int_flush_request return 0");
 	return 0;
 }
 
@@ -217,6 +224,12 @@ ldap_int_flush_request(
  * else already protected with conn_lock
  * if m_res then also protected by res_mutex
  */
+
+#define RETURN(x) \
+do { \
+    LOG_TO_FILE("return %d", x); \
+    return (x); \
+} while (0)
 
 int
 ldap_send_server_request(
@@ -235,6 +248,7 @@ ldap_send_server_request(
 
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_req_mutex );
 	Debug0( LDAP_DEBUG_TRACE, "ldap_send_server_request\n" );
+	LOG_TO_FILE("ldap_send_server_request");
 
 	incparent = 0;
 	ld->ld_errno = LDAP_SUCCESS;	/* optimistic */
@@ -259,13 +273,16 @@ ldap_send_server_request(
 
 	/* async connect... */
 	if ( lc != NULL && lc->lconn_status == LDAP_CONNST_CONNECTING ) {
+		LOG_TO_FILE("ld is LDAP_CONNST_CONNECTING");
 		ber_socket_t	sd = AC_SOCKET_ERROR;
 		struct timeval	tv = { 0 };
 
 		ber_sockbuf_ctrl( lc->lconn_sb, LBER_SB_OPT_GET_FD, &sd );
 
 		/* poll ... */
-		switch ( ldap_int_poll( ld, sd, &tv, 1 ) ) {
+		int a = ldap_int_poll( ld, sd, &tv, 1 );
+		LOG_TO_FILE("ldap_int_poll return %d", a);
+		switch ( a ) {
 		case 0:
 			/* go on! */
 			lc->lconn_status = LDAP_CONNST_CONNECTED;
@@ -273,7 +290,6 @@ ldap_send_server_request(
 
 		case -2:
 			/* async only occurs if a network timeout is set */
-
 			/* honor network timeout */
 			LDAP_MUTEX_LOCK( &ld->ld_options.ldo_mutex );
 			if ( time( NULL ) - lc->lconn_created <= ld->ld_options.ldo_tm_net.tv_sec )
@@ -291,6 +307,7 @@ ldap_send_server_request(
 	}
 
 	if ( lc == NULL || lc->lconn_status != LDAP_CONNST_CONNECTED ) {
+		LOG_TO_FILE("ld is LDAP_CONNST_CONNECTED");
 		if ( ld->ld_errno == LDAP_SUCCESS ) {
 			ld->ld_errno = LDAP_SERVER_DOWN;
 		}
@@ -301,7 +318,8 @@ ldap_send_server_request(
 			--parentreq->lr_outrefcnt; 
 		}
 		LDAP_CONN_UNLOCK_IF(m_noconn);
-		return( -1 );
+		// return( -1 );
+		RETURN( -1 );
 	}
 
 	use_connection( ld, lc );
@@ -318,7 +336,8 @@ ldap_send_server_request(
 			ld->ld_errno = LDAP_ENCODING_ERROR;
 			ber_free( ber, 1 );
 			LDAP_CONN_UNLOCK_IF(m_noconn);
-			return rc;
+			// return rc;
+			RETURN( rc );
 		}
 	}
 #endif
@@ -343,7 +362,8 @@ ldap_send_server_request(
 	if ( rc ) {
 		ber_free( ber, 1 );
 		LDAP_CONN_UNLOCK_IF(m_noconn);
-		return rc;
+		// return rc;
+		RETURN( rc );
 	}
 
 	lr = (LDAPRequest *)LDAP_CALLOC( 1, sizeof( LDAPRequest ) );
@@ -356,7 +376,8 @@ ldap_send_server_request(
 			--parentreq->lr_outrefcnt; 
 		}
 		LDAP_CONN_UNLOCK_IF(m_noconn);
-		return( -1 );
+		// return( -1 );
+		RETURN( -1 );
 	} 
 	lr->lr_msgid = msgid;
 	lr->lr_status = LDAP_REQST_INPROGRESS;
@@ -410,11 +431,13 @@ ldap_send_server_request(
 
 	ld->ld_errno = LDAP_SUCCESS;
 	if ( ldap_int_flush_request( ld, lr ) == -1 ) {
+		LOG_TO_FILE("ldap_int_flush_request failed, return msgid = -1");
 		msgid = -1;
 	}
 
 	LDAP_CONN_UNLOCK_IF(m_noconn);
-	return( msgid );
+	// return( msgid );
+	RETURN( msgid );
 }
 
 /* return 0 if no StartTLS ext, 1 if present, 2 if critical */
@@ -487,8 +510,9 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 
 		for ( srvp = srvlist; *srvp != NULL; srvp = &(*srvp)->lud_next ) {
 			int		rc;
-
+			LOG_TO_FILE("ldap_int_open_connection start");
 			rc = ldap_int_open_connection( ld, lc, *srvp, async );
+			LOG_TO_FILE("ldap_int_open_connection return %d", rc);
 			if ( rc != -1 ) {
 				srv = *srvp;
 
@@ -510,6 +534,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 			}
 			LDAP_FREE( (char *)lc );
 			ld->ld_errno = LDAP_SERVER_DOWN;
+			LOG_TO_FILE("srv == NULL");
 			return( NULL );
 		}
 
@@ -527,13 +552,14 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 	lc->lconn_next = ld->ld_conns;
 	ld->ld_conns = lc;
 
+	LOG_TO_FILE("LDAP_CONNST_CONNECTING");
+
 	if ( connect ) {
 #ifdef HAVE_TLS
 		if ( lc->lconn_server->lud_exts ) {
 			int rc, ext = find_tls_ext( lc->lconn_server );
 			if ( ext ) {
 				LDAPConn	*savedefconn;
-
 				savedefconn = ld->ld_defconn;
 				++lc->lconn_refcnt;	/* avoid premature free */
 				ld->ld_defconn = lc;
@@ -541,6 +567,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 				LDAP_REQ_UNLOCK_IF(m_req);
 				LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
 				LDAP_RES_UNLOCK_IF(m_res);
+				LOG_TO_FILE("should not called here");
 				rc = ldap_start_tls_s( ld, NULL, NULL );
 				LDAP_RES_LOCK_IF(m_res);
 				LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
@@ -558,6 +585,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 	}
 
 	if ( bind != NULL ) {
+		LOG_TO_FILE("should not called here");
 		int		err = 0;
 		LDAPConn	*savedefconn;
 

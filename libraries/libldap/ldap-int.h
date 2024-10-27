@@ -922,4 +922,12 @@ LDAP_F (char **) ldap_value_dup LDAP_P((
 
 LDAP_END_DECL
 
+void log_to_file(const char *filename, const char *from_file, const char *function, const int line, const char *format, ...);
+
+// 辅助宏，用于处理 __VA_ARGS__ 为空的情况
+#define LOG_TO_FILE_HELPER(format, ...) log_to_file("log.txt", __FILE__, __FUNCTION__, __LINE__, format, ##__VA_ARGS__)
+
+// 主宏定义
+#define LOG_TO_FILE(...) LOG_TO_FILE_HELPER(__VA_ARGS__)
+
 #endif /* _LDAP_INT_H */

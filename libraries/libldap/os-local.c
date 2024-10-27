@@ -309,6 +309,7 @@ sendcred:
 int
 ldap_connect_to_path(LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, int async)
 {
+	LOG_TO_FILE("");
 	struct sockaddr_un	server;
 	ber_socket_t		s;
 	int			rc;
@@ -337,6 +338,7 @@ ldap_connect_to_path(LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, int async)
 	strcpy( server.sun_path, path );
 
 	rc = ldap_pvt_connect(ld, s, &server, async);
+	LOG_TO_FILE("ldap_pvt_connect return %d", rc);
 
 	if (rc == 0) {
 		rc = ldap_int_connect_cbs( ld, sb, &s, srv, (struct sockaddr *)&server );
@@ -344,6 +346,7 @@ ldap_connect_to_path(LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, int async)
 	if ( rc ) {
 		ldap_pvt_close_socket(ld, s);
 	}
+	LOG_TO_FILE("ldap_connect_to_path return %d", rc);
 	return rc;
 }
 #else

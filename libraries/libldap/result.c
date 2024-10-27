@@ -78,6 +78,11 @@ static LDAPMessage * chkResponseList LDAP_P(( LDAP *ld, int msgid, int all));
 
 #define LDAP_MSG_X_KEEP_LOOKING		(-2)
 
+#define RETURN(x) \
+do { \
+    LOG_TO_FILE("return %d", x); \
+    return (x); \
+} while (0)
 
 /*
  * ldap_result - wait for an ldap result response to a message from the
@@ -114,12 +119,16 @@ ldap_result(
 	Debug2( LDAP_DEBUG_TRACE, "ldap_result ld %p msgid %d\n", (void *)ld, msgid );
 
 	if (ld->ld_errno == LDAP_LOCAL_ERROR || ld->ld_errno == LDAP_SERVER_DOWN)
+	{
+		LOG_TO_FILE("ldap_result return -1, msgid %d ld_errno %d", msgid, ld->ld_errno);
 		return -1;
+	}
 
 	LDAP_MUTEX_LOCK( &ld->ld_res_mutex );
+	LOG_TO_FILE("wait4msg start with msgid = %d", msgid );
 	rc = wait4msg( ld, msgid, all, timeout, result );
 	LDAP_MUTEX_UNLOCK( &ld->ld_res_mutex );
-
+	LOG_TO_FILE("ldap_result return %d", rc);
 	return rc;
 }
 
@@ -296,7 +305,7 @@ wait4msg(
 
 		if ( ( *result = chkResponseList( ld, msgid, all ) ) != NULL ) {
 			rc = (*result)->lm_msgtype;
-
+			LOG_TO_FILE("chkResponseList return %d", rc);
 		} else {
 			int lc_ready = 0;
 
@@ -306,14 +315,17 @@ wait4msg(
 					LBER_SB_OPT_DATA_READY, NULL ) )
 				{
 					lc_ready = 2;	/* ready at ber level, not socket level */
+					LOG_TO_FILE("ber_sockbuf_ctrl LBER_SB_OPT_DATA_READY, lc_ready = 2");
 					break;
 				}
 			}
 
 			if ( !lc_ready ) {
+				LOG_TO_FILE("ldap_int_select start poll with tvp");
 				int err;
 				rc = ldap_int_select( ld, tvp );
 				if ( rc == -1 ) {
+					LOG_TO_FILE("ldap_int_select return -1");
 					err = sock_errno();
 #ifdef LDAP_DEBUG
 					Debug1( LDAP_DEBUG_TRACE,
@@ -321,7 +333,7 @@ wait4msg(
 						err );
 #endif
 				}
-
+				LOG_TO_FILE("ldap_int_select return rc = %d, errno %d", rc, err);
 				if ( rc == 0 || ( rc == -1 && (
 					!LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART)
 						|| err != EINTR ) ) )
@@ -329,6 +341,7 @@ wait4msg(
 					ld->ld_errno = (rc == -1 ? LDAP_SERVER_DOWN :
 						LDAP_TIMEOUT);
 					LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
+					LOG_TO_FILE("wait4msg return %d", rc);
 					return( rc );
 				}
 
@@ -340,6 +353,7 @@ wait4msg(
 				}
 			}
 			if ( lc_ready ) {
+				LOG_TO_FILE("lc_ready ready");
 				LDAPConn *lnext;
 				int serviced = 0;
 				rc = LDAP_MSG_X_KEEP_LOOKING;
@@ -352,6 +366,7 @@ wait4msg(
 					lr = node->avl_data;
 					if ( lr->lr_status == LDAP_REQST_WRITING &&
 							ldap_is_write_ready( ld, lr->lr_conn->lconn_sb ) ) {
+						LOG_TO_FILE("LDAP_REQST_WRITING, conitnue ldap_int_flush_request");
 						serviced = 1;
 						ldap_int_flush_request( ld, lr );
 					}
@@ -363,10 +378,12 @@ wait4msg(
 					if ( lc->lconn_status == LDAP_CONNST_CONNECTED &&
 						ldap_is_read_ready( ld, lc->lconn_sb ) )
 					{
+						LOG_TO_FILE("ldap_is_read_ready, try_read1msg with msgid = %d", msgid);
 						serviced = 1;
 						/* Don't let it get freed out from under us */
 						++lc->lconn_refcnt;
 						rc = try_read1msg( ld, msgid, all, lc, result );
+						LOG_TO_FILE("try_read1msg retrun %d", rc);
 						lnext = lc->lconn_next;
 
 						/* Only take locks if we're really freeing */
@@ -382,7 +399,10 @@ wait4msg(
 				LDAP_MUTEX_UNLOCK( &ld->ld_req_mutex );
 				/* Quit looping if no one handled any socket events */
 				if (!serviced && lc_ready == 1)
+				{
+					LOG_TO_FILE("");
 					rc = -1;
+				}
 			}
 			LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
 		}
@@ -412,6 +432,7 @@ wait4msg(
 			{
 				rc = 0; /* timed out */
 				ld->ld_errno = LDAP_TIMEOUT;
+				LOG_TO_FILE("ld_errno = LDAP_TIMEOUT");
 				break;
 			}
 
@@ -428,12 +449,13 @@ wait4msg(
 
 			Debug3( LDAP_DEBUG_TRACE, "wait4msg ld %p %ld s %ld us to go\n",
 				(void *)ld, (long) tv.tv_sec, (long) tv.tv_usec );
+			LOG_TO_FILE("wait4msg %ld s %ld us to go", (long) tv.tv_sec, (long) tv.tv_usec);
 
 			start_time_tv.tv_sec = curr_time_tv.tv_sec;
 			start_time_tv.tv_usec = curr_time_tv.tv_usec;
 		}
 	}
-
+	LOG_TO_FILE("wait4msg return %d", rc);
 	return( rc );
 }
 
@@ -922,7 +944,7 @@ nextresp2:
 	}
 
 	if ( ber == NULL ) {
-		return( rc );
+		RETURN( rc );
 	}
 
 	/* try to handle unsolicited responses as appropriate */
@@ -1097,7 +1119,8 @@ nextresp2:
 		{
 			*result = newmsg;
 			ld->ld_errno = LDAP_SUCCESS;
-			return( tag );
+			LOG_TO_FILE("msgid = %d, id = %d, newmsg->lm_msgtype = 0x%x, ld->ld_errno = %d", msgid, id, newmsg->lm_msgtype, ld->ld_errno);
+			RETURN( tag );
 
 		} else if ( newmsg->lm_msgtype == LDAP_RES_SEARCH_RESULT) {
 			foundit = 1;	/* return the chain later */
@@ -1150,7 +1173,7 @@ nextresp2:
 exit:
 	if ( foundit ) {
 		ld->ld_errno = LDAP_SUCCESS;
-		return( tag );
+		RETURN( tag );
 	}
 	if ( lc && ber_sockbuf_ctrl( lc->lconn_sb, LBER_SB_OPT_DATA_READY, NULL ) ) {
 		goto retry;

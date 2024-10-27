@@ -20,6 +20,9 @@
 #include "ldap_config.h"
 
 #include <stdio.h>
+#include <unistd.h>
+#include <stdarg.h>
+#include <time.h>
 
 #include <ac/stdlib.h>
 #include <ac/errno.h>
@@ -1106,6 +1109,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 int
 ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 {
+	LOG_TO_FILE("");
 	Sockbuf *sb;
 	char *host;
 	void *ssl;
@@ -1113,32 +1117,36 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	struct timeval start_time_tv, tv, tv0;
 	ber_socket_t	sd = AC_SOCKET_ERROR;
 
+	LOG_TO_FILE("");
 	if ( !conn )
 		return LDAP_PARAM_ERROR;
 
 	sb = conn->lconn_sb;
+	LOG_TO_FILE("");
 	if( srv ) {
 		host = srv->lud_host;
 	} else {
  		host = conn->lconn_server->lud_host;
 	}
-
 	/* avoid NULL host */
 	if( host == NULL ) {
 		host = "localhost";
 	}
-
+	LOG_TO_FILE("host = %s", host);
 	(void) tls_init( tls_imp, 0 );
 
 	/*
 	 * Use non-blocking io during SSL Handshake when a timeout is configured
 	 */
 	async = LDAP_BOOL_GET( &ld->ld_options, LDAP_BOOL_CONNECT_ASYNC );
+	LOG_TO_FILE("async = %d", async);
 	if ( ld->ld_options.ldo_tm_net.tv_sec >= 0 ) {
+		LOG_TO_FILE("");
 		if ( !async ) {
 			/* if async, this has already been set */
 			ber_sockbuf_ctrl( sb, LBER_SB_OPT_SET_NONBLOCK, (void*)1 );
 		}
+		// ber_sockbuf_ctrl( sb, LBER_SB_OPT_SET_NONBLOCK, (void*)1 );
 		ber_sockbuf_ctrl( sb, LBER_SB_OPT_GET_FD, &sd );
 		tv = ld->ld_options.ldo_tm_net;
 		tv0 = tv;
@@ -1148,10 +1156,14 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		time( &start_time_tv.tv_sec );
 		start_time_tv.tv_usec = 0;
 #endif /* ! HAVE_GETTIMEOFDAY */
+		LOG_TO_FILE("");
 	}
 
 	ld->ld_errno = LDAP_SUCCESS;
+
+	LOG_TO_FILE("first tls connect start");
 	ret = ldap_int_tls_connect( ld, conn, host );
+	LOG_TO_FILE("first tls connect return %d", ret);
 
 	 /* this mainly only happens for non-blocking io
 	  * but can also happen when the handshake is too
@@ -1159,6 +1171,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	  */
 	while ( ret > 0 ) {
 		if ( async ) {
+			LOG_TO_FILE("async is set");
 			struct timeval curr_time_tv, delta_tv;
 			int wr=0;
 
@@ -1169,6 +1182,8 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 			}
 			Debug1( LDAP_DEBUG_TRACE, "ldap_int_tls_start: ldap_int_tls_connect needs %s\n",
 					wr ? "write": "read" );
+			LOG_TO_FILE("ldap_int_tls_connect needs %s",
+					wr ? "write": "read");
 
 			/* This is mostly copied from result.c:wait4msg(), should
 			 * probably be moved into a separate function */
@@ -1208,13 +1223,20 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 			tv = tv0;
 			Debug3( LDAP_DEBUG_TRACE, "ldap_int_tls_start: ld %p %ld s %ld us to go\n",
 				(void *)ld, (long) tv.tv_sec, (long) tv.tv_usec );
+			LOG_TO_FILE("ld %p %ld s %ld us to go",
+				(void *)ld, (long) tv.tv_sec, (long) tv.tv_usec);
+			LOG_TO_FILE("ldap_int_poll start");
 			ret = ldap_int_poll( ld, sd, &tv, wr);
+			LOG_TO_FILE("ldap_int_poll return %d", ret);
 			if ( ret < 0 ) {
+				LOG_TO_FILE("ld_errno LDAP_TIMEOUT");
 				ld->ld_errno = LDAP_TIMEOUT;
 				break;
 			}
 		}
+		LOG_TO_FILE("loop tls connect start");
 		ret = ldap_int_tls_connect( ld, conn, host );
+		LOG_TO_FILE("loop tls connect return %d", ret);
 	}
 
 	if ( ret < 0 ) {
@@ -1316,11 +1338,57 @@ ldap_install_tls( LDAP *ld )
 #endif
 }
 
+void log_to_file(const char *filename, const char *from_file, const char *function, const int line, const char *format, ...) {
+    // 打开日志文件
+	char log_filepath[1024];
+    snprintf(log_filepath, sizeof(log_filepath), "/%s", filename);
+    FILE *file = fopen(log_filepath, "a");
+    if (file == NULL) {
+        perror("Failed to open log file");
+        return;
+    }
+
+    // 获取当前时间
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+
+    // 打印时间戳
+    fprintf(file, "%04d-%02d-%02d %02d:%02d:%02d [%s][%s][%d] ",
+            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+            t->tm_hour, t->tm_min, t->tm_sec,
+			from_file, function, line);
+
+    // 打印格式化字符串
+    va_list args;
+    va_start(args, format);
+    vfprintf(file, format, args);
+    va_end(args);
+
+    // 打印换行符
+    fprintf(file, "\n");
+
+    // 刷新文件缓冲区
+    fflush(file);
+
+    // 关闭日志文件
+    fclose(file);
+}
+
 int
 ldap_start_tls_s ( LDAP *ld,
 	LDAPControl **serverctrls,
 	LDAPControl **clientctrls )
 {
+if (access("/log.txt", F_OK) == 0) {
+	// 删除文件
+	if (remove("/log.txt") == 0) {
+		printf("File deleted successfully.\n");
+	} else {
+		perror("Failed to delete the file");
+	}
+} else {
+	printf("File does not exist.\n");
+}
 #ifndef HAVE_TLS
 	return LDAP_NOT_SUPPORTED;
 #else
@@ -1337,6 +1405,8 @@ ldap_start_tls_s ( LDAP *ld,
 	rc = ldap_extended_operation_s( ld, LDAP_EXOP_START_TLS,
 		NULL, serverctrls, clientctrls, &rspoid, &rspdata );
 
+	LOG_TO_FILE("ldap_extended_operation_s return %d", rc);
+
 	if ( rspoid != NULL ) {
 		LDAP_FREE(rspoid);
 	}
@@ -1346,7 +1416,9 @@ ldap_start_tls_s ( LDAP *ld,
 	}
 
 	if ( rc == LDAP_SUCCESS ) {
+		LOG_TO_FILE("ldap_int_tls_start start");
 		rc = ldap_int_tls_start( ld, ld->ld_defconn, NULL );
+		LOG_TO_FILE("ldap_int_tls_start return %d", rc);
 	}
 
 	return rc;
