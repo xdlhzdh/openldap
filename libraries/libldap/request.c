@@ -567,7 +567,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 				LDAP_REQ_UNLOCK_IF(m_req);
 				LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
 				LDAP_RES_UNLOCK_IF(m_res);
-				LOG_TO_FILE("should not called here");
+				LOG_TO_FILE("should not reach here");
 				rc = ldap_start_tls_s( ld, NULL, NULL );
 				LDAP_RES_LOCK_IF(m_res);
 				LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
@@ -585,7 +585,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 	}
 
 	if ( bind != NULL ) {
-		LOG_TO_FILE("should not called here");
+		LOG_TO_FILE("should not reach here");
 		int		err = 0;
 		LDAPConn	*savedefconn;
 

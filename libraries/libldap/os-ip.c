@@ -242,13 +242,16 @@ ldap_pvt_is_socket_ready(LDAP *ld, int s)
 	if ( getsockopt( s, SOL_SOCKET, SO_ERROR, &so_errno, &dummy )
 		== AC_SOCKET_ERROR )
 	{
+		LOG_TO_FILE("getsockopt(%d) failed with errno %d ", s, so_errno);
 		return -1;
 	}
 	if ( so_errno ) {
+		LOG_TO_FILE("ldap_pvt_set_errno(%d)", so_errno);
 		ldap_pvt_set_errno(so_errno);
 		TRACE;
 		return -1;
 	}
+	LOG_TO_FILE("socket is ready");
 	return 0;
 }
 #else
@@ -265,13 +268,16 @@ ldap_pvt_is_socket_ready(LDAP *ld, int s)
 		== AC_SOCKET_ERROR )
 	{
 		/* XXX: needs to be replace with ber_stream_read() */
+		LOG_TO_FILE("getpeername failed");
 		(void)!read(s, &ch, 1);
 		TRACE;
 		return -1;
 	}
+	LOG_TO_FILE("socket is ready");
 	return 0;
 }
 #endif
+	LOG_TO_FILE("should not reach here");
 	return -1;
 }
 #undef TRACE
@@ -288,7 +294,7 @@ ldap_int_poll(
 {
 	int		rc;
 		
-
+	LOG_TO_FILE("ldap_int_poll: fd: %d, tm: %ld, wr: %d", s, tvp ? tvp->tv_sec : -1L, wr);
 	Debug2(LDAP_DEBUG_TRACE, "ldap_int_poll: fd: %d tm: %ld\n",
 		s, tvp ? tvp->tv_sec : -1L );
 
@@ -312,6 +318,8 @@ ldap_int_poll(
 		} while ( rc == AC_SOCKET_ERROR && errno == EINTR &&
 			LDAP_BOOL_GET( &ld->ld_options, LDAP_BOOL_RESTART ) );
 
+		LOG_TO_FILE("poll return rc = %d", rc);
+
 		if ( rc == AC_SOCKET_ERROR ) {
 			return rc;
 		}
@@ -330,6 +338,7 @@ ldap_int_poll(
 			}
 			return 0;
 		}
+		LOG_TO_FILE("no event received for %s", wr ? "POLL_WRITE" : "POLL_READ");
 	}
 #else
 	{
@@ -412,6 +421,7 @@ ldap_int_poll(
 #endif
 
 	Debug0(LDAP_DEBUG_TRACE, "ldap_int_poll: timed out\n" );
+	LOG_TO_FILE("ldap_int_poll: timed out");
 	ldap_pvt_set_errno( ETIMEDOUT );
 	return -1;
 }
