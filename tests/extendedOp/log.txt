@@ -1,0 +1,67 @@
+2024-10-30 09:32:27 [extended.c][ldap_extended_operation][109] ldap_extended_operation
+2024-10-30 09:32:27 [extended.c][ldap_extended_operation][126] ldap_build_extended_req return msgidp = 1
+2024-10-30 09:32:27 [request.c][ldap_send_initial_request][127] ldap_send_initial_request
+2024-10-30 09:32:27 [request.c][ldap_new_connection][513] ldap_int_open_connection start
+2024-10-30 09:32:27 [open.c][ldap_int_open_connection][441] ldap_connect_to_host start
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][657] 
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][706] 
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][750] ldap_connect_to_host: Trying 127.0.0.1:1234
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][763] ldap_connect_to_host: From source address 127.0.0.1
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][775] ldap_pvt_connect start
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_connect][457] ldap_pvt_connect: fd: 33 tm: 5 async: 0
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_ndelay_on][88] ldap_ndelay_on: 33
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_connect][465] attempting to connect:
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_connect][475] connect errno: 115
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_connect][479] 
+2024-10-30 09:32:27 [os-ip.c][ldap_int_poll][297] ldap_int_poll: fd: 33, tm: 5, wr: 1
+2024-10-30 09:32:27 [os-ip.c][ldap_int_poll][314] polling with timeout 5000
+2024-10-30 09:32:27 [os-ip.c][ldap_int_poll][321] poll return rc = 1
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_is_socket_ready][276] socket is ready
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_ndelay_off][96] ldap_ndelay_off: 33
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_connect][491] ldap_int_poll return 0
+2024-10-30 09:32:27 [os-ip.c][ldap_pvt_connect][494] ldap_pvt_connect: 0
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][778] ldap_pvt_connect return 0
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][780] ldap_int_connect_cbs start
+2024-10-30 09:32:27 [os-ip.c][ldap_connect_to_host][782] ldap_int_connect_cbs return 0
+2024-10-30 09:32:27 [open.c][ldap_int_open_connection][444] ldap_connect_to_host return 0
+2024-10-30 09:32:27 [request.c][ldap_new_connection][515] ldap_int_open_connection return 0
+2024-10-30 09:32:27 [request.c][ldap_new_connection][555] LDAP_CONNST_CONNECTING
+2024-10-30 09:32:27 [request.c][ldap_send_initial_request][149] ldap_open_defconn: successful
+2024-10-30 09:32:27 [request.c][ldap_send_server_request][251] ldap_send_server_request
+2024-10-30 09:32:27 [request.c][ldap_int_flush_request][212] ber_flush2 success, clear write and set read, set lr_status = LDAP_REQST_INPROGRESS
+2024-10-30 09:32:27 [request.c][ldap_int_flush_request][217] ldap_int_flush_request return 0
+2024-10-30 09:32:27 [request.c][ldap_send_server_request][440] return 1
+2024-10-30 09:32:27 [extended.c][ldap_extended_operation][129] ldap_send_initial_request return msgidp = 1, ld_errno = 0
+2024-10-30 09:32:27 [result.c][ldap_result][128] wait4msg start with msgid = 1
+2024-10-30 09:32:27 [result.c][wait4msg][324] ldap_int_select start poll with tvp
+2024-10-30 09:32:27 [result.c][wait4msg][336] ldap_int_select return rc = 1, errno 29694720
+2024-10-30 09:32:27 [result.c][wait4msg][356] lc_ready ready
+2024-10-30 09:32:27 [result.c][wait4msg][381] ldap_is_read_ready, try_read1msg with msgid = 1
+2024-10-30 09:32:27 [result.c][try_read1msg][1122] msgid = 1, id = 1, newmsg->lm_msgtype = 0x78, ld->ld_errno = 0
+2024-10-30 09:32:27 [result.c][try_read1msg][1123] return 120
+2024-10-30 09:32:27 [result.c][wait4msg][386] try_read1msg retrun 120
+2024-10-30 09:32:27 [result.c][wait4msg][458] wait4msg return 120
+2024-10-30 09:32:27 [result.c][ldap_result][131] ldap_result return 120
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1112] 
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1120] 
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1125] 
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1135] host = 127.0.0.1
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1142] async = -1
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1144] 
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1159] 
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1164] first tls connect start
+2024-10-30 09:32:27 [tls_o.c][tlso_session_connect][676] 
+2024-10-30 09:32:27 [tls_o.c][tlso_session_connect][686] tlso_session_connect return -2
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1166] first tls connect return 1
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1174] async is set
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1185] ldap_int_tls_connect needs read
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1226] ld 0x1c84ed0 4 s 999732 us to go
+2024-10-30 09:32:27 [tls2.c][ldap_int_tls_start][1228] ldap_int_poll start
+2024-10-30 09:32:27 [os-ip.c][ldap_int_poll][297] ldap_int_poll: fd: 33, tm: 4, wr: 0
+2024-10-30 09:32:27 [os-ip.c][ldap_int_poll][314] polling with timeout 4999
+2024-10-30 09:32:32 [os-ip.c][ldap_int_poll][321] poll return rc = 0
+2024-10-30 09:32:32 [os-ip.c][ldap_int_poll][341] no event received for POLL_READ
+2024-10-30 09:32:32 [os-ip.c][ldap_int_poll][424] ldap_int_poll: timed out
+2024-10-30 09:32:32 [tls2.c][ldap_int_tls_start][1230] ldap_int_poll return -1
+2024-10-30 09:32:32 [tls2.c][ldap_int_tls_start][1232] ld_errno LDAP_TIMEOUT
+
