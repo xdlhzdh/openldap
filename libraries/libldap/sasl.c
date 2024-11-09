@@ -147,7 +147,7 @@ ldap_sasl_bind(
 	ber_int_t id;
 
 	Debug0( LDAP_DEBUG_TRACE, "ldap_sasl_bind\n" );
-
+	LOG_TO_FILE("start ldap_sasl_bind");
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
 	assert( msgidp != NULL );
@@ -155,11 +155,12 @@ ldap_sasl_bind(
 	/* check client controls */
 	rc = ldap_int_client_controls( ld, cctrls );
 	if( rc != LDAP_SUCCESS ) return rc;
-
+	LOG_TO_FILE("ldap_build_bind_req");
 	ber = ldap_build_bind_req( ld, dn, mechanism, cred, sctrls, cctrls, &id );
 	if( !ber )
 		return ld->ld_errno;
 
+	LOG_TO_FILE("ldap_send_initial_request");
 	/* send the message */
 	*msgidp = ldap_send_initial_request( ld, LDAP_REQ_BIND, dn, ber, id );
 

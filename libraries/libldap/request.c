@@ -136,6 +136,7 @@ ldap_send_initial_request(
 		}
 	}
 	if ( ld->ld_defconn && ld->ld_defconn->lconn_status == LDAP_CONNST_CONNECTING ) {
+		LOG_TO_FILE("start ldap_int_check_async_open due to LDAP_CONNST_CONNECTING");
 		rc = ldap_int_check_async_open( ld, sd );
 	    LOG_TO_FILE("ldap_int_check_async_open return %d", rc);
 	}
@@ -170,8 +171,11 @@ ldap_send_initial_request(
 	}
 #endif
 	LDAP_MUTEX_LOCK( &ld->ld_req_mutex );
+	LOG_TO_FILE("start ldap_send_server_request");
 	rc = ldap_send_server_request( ld, ber, msgid, NULL,
 		NULL, NULL, NULL, 0, 0 );
+	LOG_TO_FILE("ldap_send_server_request return %d", rc);
+
 	LDAP_MUTEX_UNLOCK( &ld->ld_req_mutex );
 	LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
 	return(rc);
@@ -248,7 +252,7 @@ ldap_send_server_request(
 
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_req_mutex );
 	Debug0( LDAP_DEBUG_TRACE, "ldap_send_server_request\n" );
-	LOG_TO_FILE("ldap_send_server_request");
+	LOG_TO_FILE("start send server request");
 
 	incparent = 0;
 	ld->ld_errno = LDAP_SUCCESS;	/* optimistic */
@@ -265,15 +269,17 @@ ldap_send_server_request(
 					incparent = 1;
 					++parentreq->lr_outrefcnt;
 				}
+				LOG_TO_FILE("no connection found, create new connection");
 				lc = ldap_new_connection( ld, srvlist, 0,
 					1, bind, 1, m_res );
+				LOG_TO_FILE("ldap_new_connection return %p", lc);
 			}
 		}
 	}
 
 	/* async connect... */
 	if ( lc != NULL && lc->lconn_status == LDAP_CONNST_CONNECTING ) {
-		LOG_TO_FILE("ld is LDAP_CONNST_CONNECTING");
+		LOG_TO_FILE("ld is LDAP_CONNST_CONNECTING, start poll with tv 0");
 		ber_socket_t	sd = AC_SOCKET_ERROR;
 		struct timeval	tv = { 0 };
 
@@ -552,7 +558,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 	lc->lconn_next = ld->ld_conns;
 	ld->ld_conns = lc;
 
-	LOG_TO_FILE("LDAP_CONNST_CONNECTING");
+	LOG_TO_FILE("lconn_status = %s", lc->lconn_status == LDAP_CONNST_CONNECTING ? "LDAP_CONNST_CONNECTING" : "LDAP_CONNST_CONNECTED");
 
 	if ( connect ) {
 #ifdef HAVE_TLS

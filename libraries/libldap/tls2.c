@@ -1161,7 +1161,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 
 	ld->ld_errno = LDAP_SUCCESS;
 
-	LOG_TO_FILE("first tls connect start");
+	LOG_TO_FILE("first tls connect start with async = %d", async);
 	ret = ldap_int_tls_connect( ld, conn, host );
 	LOG_TO_FILE("first tls connect return %d", ret);
 

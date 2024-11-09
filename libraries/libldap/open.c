@@ -435,10 +435,10 @@ ldap_int_open_connection(
 	int proto;
 
 	Debug0( LDAP_DEBUG_TRACE, "ldap_int_open_connection\n" );
-
+	LOG_TO_FILE("enter");
 	switch ( proto = ldap_pvt_url_scheme2proto( srv->lud_scheme ) ) {
 		case LDAP_PROTO_TCP:
-			LOG_TO_FILE("ldap_connect_to_host start");
+			LOG_TO_FILE("proto is LDAP_PROTO_TCP, start ldap_connect_to_host");
 			rc = ldap_connect_to_host( ld, conn->lconn_sb,
 				proto, srv, async );
 			LOG_TO_FILE("ldap_connect_to_host return %d", rc);
@@ -503,6 +503,7 @@ ldap_int_open_connection(
 #endif
 
 	if ( async && rc == -2) {
+		LOG_TO_FILE("async and return -2");
 		/* Need to let the connect complete asynchronously before we continue */
 		return -2;
 	}
@@ -513,7 +514,9 @@ ldap_int_open_connection(
 	{
 		++conn->lconn_refcnt;	/* avoid premature free */
 
+		LOG_TO_FILE("ldo_tls_mode is LDAP_OPT_X_TLS_HARD, ldap_int_tls_start for ldaps");
 		rc = ldap_int_tls_start( ld, conn, srv );
+		LOG_TO_FILE("ldap_int_tls_start return %d", rc);
 
 		--conn->lconn_refcnt;
 

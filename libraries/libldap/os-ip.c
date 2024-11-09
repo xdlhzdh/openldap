@@ -643,18 +643,20 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 	case LDAP_PROTO_TCP: socktype = SOCK_STREAM;
 		Debug2(LDAP_DEBUG_TRACE, "ldap_connect_to_host: TCP %s:%d\n",
 			host, port );
+		LOG_TO_FILE("ldap_connect_to_host: TCP %s:%d", host, port );
 		break;
 	case LDAP_PROTO_UDP: socktype = SOCK_DGRAM;
 		Debug2(LDAP_DEBUG_TRACE, "ldap_connect_to_host: UDP %s:%d\n",
 			host, port );
+		LOG_TO_FILE("ldap_connect_to_host: UDP %s:%d", host, port );
 		break;
 	default:
 		Debug1(LDAP_DEBUG_TRACE,
 			"ldap_connect_to_host: unknown proto: %d\n",
 			proto );
+		LOG_TO_FILE("ldap_connect_to_host: unknown proto: %d", proto );
 		return -1;
 	}
-	LOG_TO_FILE("");
 #if defined( HAVE_GETADDRINFO ) && defined( HAVE_INET_NTOP )
 	memset( &hints, '\0', sizeof(hints) );
 #ifdef USE_AI_ADDRCONFIG /* FIXME: configure test needed */
