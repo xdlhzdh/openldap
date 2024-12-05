@@ -90,3 +90,19 @@ top-level directory of the distribution or, alternatively, at
 <http://www.OpenLDAP.org/license.html>.
 
 OpenLDAP is a registered trademark of the OpenLDAP Foundation.
+
+
+编译命令（生成compile_commands.json）：
+
+autoconf &&
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --disable-static     \
+            --enable-dynamic     \
+            --disable-debug      \
+            --disable-slapd &&
+make depend &&
+bear -- make
+
+安装命令：
+make install
