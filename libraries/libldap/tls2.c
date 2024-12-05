@@ -408,6 +408,7 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn, const char *host )
 			sni = NULL;
 	}
 	err = tls_imp->ti_session_connect( ld, ssl, sni );
+	LOG_TO_FILE("err=%d, ld_errno=%d", err, ld->ld_errno);
 
 #ifdef HAVE_WINSOCK
 	errno = WSAGetLastError();
@@ -415,16 +416,19 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn, const char *host )
 
 	if ( err == 0 ) {
 		err = ldap_pvt_tls_check_hostname( ld, ssl, host );
+		LOG_TO_FILE("err=%d, ld_errno=%d", err, ld->ld_errno);
 	}
 
 	if ( err < 0 )
 	{
 		char buf[256], *msg;
 		if ( update_flags( sb, ssl, err )) {
+			LOG_TO_FILE("update_flags return 1");
 			return 1;
 		}
 
 		msg = tls_imp->ti_session_errmsg( ssl, err, buf, sizeof(buf) );
+		LOG_TO_FILE("msg=%d, err=%d, ld_errno=%d", msg, err, ld->ld_errno);
 		if ( msg ) {
 			if ( ld->ld_error ) {
 				LDAP_FREE( ld->ld_error );
@@ -437,6 +441,8 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn, const char *host )
 
 		Debug1( LDAP_DEBUG_ANY,"TLS: can't connect: %s.\n",
 			ld->ld_error ? ld->ld_error : "" );
+		LOG_TO_FILE("TLS: can't connect: %s.",
+			ld->ld_error ? ld->ld_error : "");
 
 		ber_sockbuf_remove_io( sb, tls_imp->ti_sbio,
 			LBER_SBIOD_LEVEL_TRANSPORT );
@@ -1236,12 +1242,15 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		}
 		LOG_TO_FILE("loop tls connect start");
 		ret = ldap_int_tls_connect( ld, conn, host );
-		LOG_TO_FILE("loop tls connect return %d", ret);
+		LOG_TO_FILE("loop tls connect ret=%d, ld_errno=%d", ret, ld->ld_errno);
 	}
 
 	if ( ret < 0 ) {
 		if ( ld->ld_errno == LDAP_SUCCESS )
+		{
 			ld->ld_errno = LDAP_CONNECT_ERROR;
+			LOG_TO_FILE("ret=%d, ld_errno=%d", ret, ld->ld_errno);
+		}
 		return (ld->ld_errno);
 	}
 

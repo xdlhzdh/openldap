@@ -931,7 +931,9 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 			if (!gotSAN) {
 				Debug0( LDAP_DEBUG_ANY,
 					"TLS: unable to get subjectAltName from peer certificate.\n" );
+				LOG_TO_FILE("TLS: unable to get subjectAltName from peer certificate.");
 				ret = LDAP_CONNECT_ERROR;
+				LOG_TO_FILE("ret=%d, ld_error=%d", ret, ld->ld_error);
 				if ( ld->ld_error ) {
 					LDAP_FREE( ld->ld_error );
 				}
@@ -945,7 +947,9 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 				Debug1( LDAP_DEBUG_ANY, "TLS: hostname (%s) does not match "
 					"subjectAltName in certificate.\n",
 					name );
+				LOG_TO_FILE("TLS: hostname (%s) does not match subjectAltName in certificate.", name);
 				ret = LDAP_CONNECT_ERROR;
+				LOG_TO_FILE("ret=%d, ld_error=%d", ret, ld->ld_error);
 				if ( ld->ld_error ) {
 					LDAP_FREE( ld->ld_error );
 				}
@@ -985,7 +989,9 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 no_cn:
 			Debug0( LDAP_DEBUG_ANY,
 				"TLS: unable to get common name from peer certificate.\n" );
+			LOG_TO_FILE("TLS: unable to get common name from peer certificate.");
 			ret = LDAP_CONNECT_ERROR;
+			LOG_TO_FILE("ret=%d, ld_error=%d", ret, ld->ld_error);
 			if ( ld->ld_error ) {
 				LDAP_FREE( ld->ld_error );
 			}
@@ -1015,7 +1021,11 @@ no_cn:
 			Debug3( LDAP_DEBUG_ANY, "TLS: hostname (%s) does not match "
 				"common name in certificate (%.*s).\n", 
 				name, cn->length, cn->data );
+			LOG_TO_FILE("TLS: hostname (%s) does not match "
+				"common name in certificate (%.*s).",
+				name, cn->length, cn->data);
 			ret = LDAP_CONNECT_ERROR;
+			LOG_TO_FILE("ret=%d, ld_error=%d", ret, ld->ld_error);
 			if ( ld->ld_error ) {
 				LDAP_FREE( ld->ld_error );
 			}
@@ -1204,6 +1214,9 @@ tlso_session_pinning( LDAP *ld, tls_session *sess, char *hashalg, struct berval 
 		rc = LDAP_CONNECT_ERROR;
 		Debug0( LDAP_DEBUG_ANY, "tlso_session_pinning: "
 				"public key hash does not match provided pin.\n" );
+		LOG_TO_FILE("tlso_session_pinning: "
+				"public key hash does not match provided pin.");
+		LOG_TO_FILE("rc=%d, ld_error=%d", rc, ld->ld_error);
 		if ( ld->ld_error ) {
 			LDAP_FREE( ld->ld_error );
 		}
