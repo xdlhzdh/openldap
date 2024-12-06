@@ -94,7 +94,7 @@ OpenLDAP is a registered trademark of the OpenLDAP Foundation.
 
 编译命令（生成compile_commands.json）：
 
-autoconf &&
+<autoconf &&> [not needed due to already configured]
 ./configure --prefix=/usr        \
             --sysconfdir=/etc    \
             --disable-static     \
