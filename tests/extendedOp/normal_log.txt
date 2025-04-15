@@ -1,0 +1,96 @@
+2025-04-14 10:50:19 [extended.c][ldap_extended_operation][109] ldap_extended_operation
+2025-04-14 10:50:19 [extended.c][ldap_extended_operation][126] ldap_build_extended_req return msgidp = 1
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][127] ldap_send_initial_request
+2025-04-14 10:50:19 [request.c][ldap_new_connection][519] ldap_int_open_connection start
+2025-04-14 10:50:19 [open.c][ldap_int_open_connection][438] enter
+2025-04-14 10:50:19 [open.c][ldap_int_open_connection][441] proto is LDAP_PROTO_TCP, start ldap_connect_to_host
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][646] ldap_connect_to_host: TCP 127.0.0.1:44369
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][708] 
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][752] ldap_connect_to_host: Trying 127.0.0.1:44369
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][765] ldap_connect_to_host: From source address 127.0.0.66
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][777] ldap_pvt_connect start
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_connect][457] ldap_pvt_connect: fd: 33 tm: 5 async: 0
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_ndelay_on][88] ldap_ndelay_on: 33
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_connect][465] attempting to connect:
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_connect][475] connect errno: 115
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_connect][479] 
+2025-04-14 10:50:19 [os-ip.c][ldap_int_poll][297] ldap_int_poll: fd: 33, tm: 5, wr: 1
+2025-04-14 10:50:19 [os-ip.c][ldap_int_poll][314] polling with timeout 5000
+2025-04-14 10:50:19 [os-ip.c][ldap_int_poll][321] poll return rc = 1
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_is_socket_ready][276] socket is ready
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_ndelay_off][96] ldap_ndelay_off: 33
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_connect][491] ldap_int_poll return 0
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_connect][494] ldap_pvt_connect: 0
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][780] ldap_pvt_connect return 0
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][782] ldap_int_connect_cbs start
+2025-04-14 10:50:19 [os-ip.c][ldap_connect_to_host][784] ldap_int_connect_cbs return 0
+2025-04-14 10:50:19 [open.c][ldap_int_open_connection][444] ldap_connect_to_host return 0
+2025-04-14 10:50:19 [request.c][ldap_new_connection][521] ldap_int_open_connection return 0
+2025-04-14 10:50:19 [request.c][ldap_new_connection][561] lconn_status = LDAP_CONNST_CONNECTED
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][150] ldap_open_defconn: successful
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][174] start ldap_send_server_request
+2025-04-14 10:50:19 [request.c][ldap_send_server_request][255] start send server request
+2025-04-14 10:50:19 [request.c][ldap_int_flush_request][216] ber_flush2 success, clear write and set read, set lr_status = LDAP_REQST_INPROGRESS
+2025-04-14 10:50:19 [request.c][ldap_int_flush_request][221] ldap_int_flush_request return 0
+2025-04-14 10:50:19 [request.c][ldap_send_server_request][446] return 1
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][177] ldap_send_server_request return 1
+2025-04-14 10:50:19 [extended.c][ldap_extended_operation][129] ldap_send_initial_request return msgidp = 1, ld_errno = 0
+2025-04-14 10:50:19 [result.c][ldap_result][128] wait4msg start with msgid = 1
+2025-04-14 10:50:19 [result.c][wait4msg][324] ldap_int_select start poll with tvp
+2025-04-14 10:50:19 [result.c][wait4msg][336] ldap_int_select return rc = 1, errno 4
+2025-04-14 10:50:19 [result.c][wait4msg][356] lc_ready ready
+2025-04-14 10:50:19 [result.c][wait4msg][381] ldap_is_read_ready, try_read1msg with msgid = 1
+2025-04-14 10:50:19 [result.c][try_read1msg][1122] msgid = 1, id = 1, newmsg->lm_msgtype = 0x78, ld->ld_errno = 0
+2025-04-14 10:50:19 [result.c][try_read1msg][1123] return 120
+2025-04-14 10:50:19 [result.c][wait4msg][386] try_read1msg retrun 120
+2025-04-14 10:50:19 [result.c][wait4msg][458] wait4msg return 120
+2025-04-14 10:50:19 [result.c][ldap_result][131] ldap_result return 120
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1118] 
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1126] 
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1131] 
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1141] host = 127.0.0.1
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1148] async = -1
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1150] 
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1165] 
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1170] first tls connect start with async = -1
+2025-04-14 10:50:19 [tls_o.c][tlso_session_connect][676] 
+2025-04-14 10:50:19 [tls_o.c][tlso_session_connect][686] tlso_session_connect return -2
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_connect][411] err=-2, ld_errno=0
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_connect][426] update_flags return 1
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1172] first tls connect return 1
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1180] async is set
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1191] ldap_int_tls_connect needs read
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1232] ld 0x2ac16f0 4 s 999401 us to go
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1234] ldap_int_poll start
+2025-04-14 10:50:19 [os-ip.c][ldap_int_poll][297] ldap_int_poll: fd: 33, tm: 4, wr: 0
+2025-04-14 10:50:19 [os-ip.c][ldap_int_poll][314] polling with timeout 4999
+2025-04-14 10:50:19 [os-ip.c][ldap_int_poll][321] poll return rc = 1
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_is_socket_ready][276] socket is ready
+2025-04-14 10:50:19 [os-ip.c][ldap_pvt_ndelay_off][96] ldap_ndelay_off: 33
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1236] ldap_int_poll return 0
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1243] loop tls connect start
+2025-04-14 10:50:19 [tls_o.c][tlso_session_connect][676] 
+2025-04-14 10:50:19 [tls_o.c][tlso_session_connect][686] tlso_session_connect return 0
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_connect][411] err=0, ld_errno=0
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_connect][419] err=0, ld_errno=0
+2025-04-14 10:50:19 [tls2.c][ldap_int_tls_start][1245] loop tls connect ret=0, ld_errno=0
+2025-04-14 10:50:19 [sasl.c][ldap_sasl_bind][150] start ldap_sasl_bind
+2025-04-14 10:50:19 [sasl.c][ldap_sasl_bind][158] ldap_build_bind_req
+2025-04-14 10:50:19 [sasl.c][ldap_sasl_bind][163] ldap_send_initial_request
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][127] ldap_send_initial_request
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][174] start ldap_send_server_request
+2025-04-14 10:50:19 [request.c][ldap_send_server_request][255] start send server request
+2025-04-14 10:50:19 [request.c][ldap_int_flush_request][216] ber_flush2 success, clear write and set read, set lr_status = LDAP_REQST_INPROGRESS
+2025-04-14 10:50:19 [request.c][ldap_int_flush_request][221] ldap_int_flush_request return 0
+2025-04-14 10:50:19 [request.c][ldap_send_server_request][446] return 2
+2025-04-14 10:50:19 [request.c][ldap_send_initial_request][177] ldap_send_server_request return 2
+2025-04-14 10:50:19 [result.c][ldap_result][128] wait4msg start with msgid = 2
+2025-04-14 10:50:19 [result.c][wait4msg][324] ldap_int_select start poll with tvp
+2025-04-14 10:50:19 [result.c][wait4msg][336] ldap_int_select return rc = 1, errno 4
+2025-04-14 10:50:19 [result.c][wait4msg][356] lc_ready ready
+2025-04-14 10:50:19 [result.c][wait4msg][381] ldap_is_read_ready, try_read1msg with msgid = 2
+2025-04-14 10:50:19 [result.c][try_read1msg][1122] msgid = 2, id = 2, newmsg->lm_msgtype = 0x61, ld->ld_errno = 0
+2025-04-14 10:50:19 [result.c][try_read1msg][1123] return 97
+2025-04-14 10:50:19 [result.c][wait4msg][386] try_read1msg retrun 97
+2025-04-14 10:50:19 [result.c][wait4msg][458] wait4msg return 97
+2025-04-14 10:50:19 [result.c][ldap_result][131] ldap_result return 97
